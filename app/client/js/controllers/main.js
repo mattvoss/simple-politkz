@@ -11,8 +11,9 @@ angular.module('politkzController', ['tc.chartjs', 'angularMoment'])
     });
     $scope.typeClick = function($event) {
       $scope.currentType = this.election;
-      $($event.srcElement).addClass("active");
-      $($event.srcElement).siblings().removeClass("active");
+      var el = ($event.target.className.indexOf("list-group-item") > -1) ? $event.target : $event.target.parentNode;
+      $(el).addClass("active");
+      $(el).siblings().removeClass("active");
     };
 
 

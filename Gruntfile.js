@@ -123,6 +123,16 @@ module.exports = function(grunt) {
             ],
             dest: 'public/css/',
             filter: 'isFile'
+          },
+
+          {
+            expand: true,
+            flatten: true,
+            src: [
+              'app/client/*.html'
+            ],
+            dest: 'public/',
+            filter: 'isFile'
           }
 
         ]

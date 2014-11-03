@@ -1,0 +1,73 @@
+<!doctype html>
+
+<!-- ASSIGN OUR ANGULAR MODULE -->
+<html ng-app="politkz">
+<head>
+  <!-- META -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Optimize mobile viewport -->
+
+  <title>2014 Election Predictions - politkz.com</title>
+
+  <!-- SCROLLS -->
+  <link rel="stylesheet" href="css/app.css"><!-- load bootstrap -->
+  <style>
+    html          { overflow-y:scroll; }
+    body          { padding-top:50px; }
+    #election-list        { margin-bottom:30px; }
+    #todo-form        { margin-bottom:50px; }
+  </style>
+
+  <!-- SPELLS -->
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script><!-- load angular -->
+  <script src="js/vendors.min.js"></script>
+  <script src="js/json.js"></script>
+  <script src="js/app.min.js"></script> <!-- load up our controller -->
+</head>
+<!-- SET THE CONTROLLER -->
+<body ng-controller="mainController">
+  <div class="container">
+
+    <!-- HEADER AND TODO COUNT -->
+    <div class="jumbotron text-center">
+      <h1>2014 Election Probabilities</h1>
+    </div>
+
+    <!-- TODO LIST -->
+    <div id="election-list" class="row">
+      <div class="col-sm-2">
+        <div class="list-group">
+          <a href class="list-group-item" ng-click="typeClick($event)" ng-repeat="election in elections">
+            {{election.topic | split:"-":0 }} {{election.topic | split:"-":1 | capitalize }}<span class="badge">{{election.races.length}}</span>
+          </a>
+        </div>
+      </div>
+      <div class="col-sm-8">
+        <h3 ng-show="currentState">{{currentState.stateName}} - {{currentState.topic | split:"-":0 }} {{currentState.topic | split:"-":1 | capitalize }}</h3>
+        <canvas tc-chartjs-line chart-options="options" chart-data="data" chart-legend="chart"></canvas>
+        <small class="text-muted pull-right" ng-show="sim">latest simulation data as of <span am-time-ago="sim[sim.length-1].unixtime*1000"></span></small>
+      </div>
+      <div class="col-sm-2">
+        <div class="dropdown pull-right" ng-show="currentType">
+          <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+            State
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+            <li role="presentation" ng-repeat="race in currentType.races">
+              <a role="menuitem" tabindex="-1" href ng-click="menuClick()">{{race.state}}</a>
+            </li>
+          </ul>
+        </div>
+        <div tc-chartjs-legend chart-legend="chart"></div>
+      </div>
+    </div>
+    <hr />
+    <div class="text-muted">
+      <p class="pull-right">brought to you by politkz.com (<a href="mailto:voss.matthew@gmail.com">Matt Voss</a>)</p>
+    </div>
+
+  </div>
+
+</body>
+</html>
