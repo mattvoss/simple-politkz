@@ -1,0 +1,14 @@
+{
+  "name": "simple-politkz",
+  "version": "0.0.1",
+  "dependencies": {
+    "bootstrap": "*",
+    "underscore": "*",
+    "json2": "*",
+    "font-awesome": "*",
+    "moment": "*",
+    "angular-moment": "*",
+    "waslidemenu": "https://github.com/webasyst/waslidemenu.git",
+    "tc-angular-chartjs": "*"
+  }
+}
