@@ -1,4 +1,4 @@
-angular.module('politkz', ['politkzController', 'politkzService'])
+var app = angular.module('politkz', ['politkzController', 'politkzService'])
   .directive('onLastRepeat', function() {
     return function(scope, element, attrs) {
       if (scope.$last) setTimeout(function(){

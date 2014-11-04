@@ -1,0 +1,53 @@
+SELECT EXP( SUM( LOG( demRawProb ) ) / COUNT( demRawProb ) ) FROM sim WHERE state = "NH" AND topic = "2014-senate"
+
+SELECT *, demProbRaw*EXP(-TIMESTAMPDIFF(MINUTE, time, NOW())/400) as diff
+FROM sim
+WHERE state = "NH" AND topic = "2014-senate"
+
+SELECT
+  time,
+  demProbRaw,
+  @x:=Round((15*@x+demProbRaw)/10,2) as ExpMovingAvg
+FROM sim
+JOIN (
+  SELECT @x:=1
+) AS dummy
+WHERE state = "NH" AND topic = "2014-senate"
+ORDER BY time DESC LIMIT 10;
+
+SELECT
+  time,
+  demProbRaw,
+  @x:=Round((9*@x+demProbRaw)/10,2) as ExpMovingAvg
+FROM (SELECT * FROM sim WHERE state = "NH" AND topic = "2014-senate" ORDER BY time DESC LIMIT 50) sub
+JOIN (
+  SELECT @x:=1
+) AS dummy
+ORDER BY time ASC
+
+SELECT COUNT(id),
+       DATE_FORMAT(time,'%Y-%m-%d %H:%i:00') AS niceDate,
+       CASE WHEN demProbRaw > repProbRaw THEN 'dem' ELSE 'rep' END AS winner
+FROM sim
+WHERE topic = "2014-senate" AND time >= "2014-11-02 21:00:00"
+GROUP BY niceDate, winner
+ORDER BY niceDate ASC
+LIMIT 300
+
+38 - 4 = 34
+42 - 12 = 30
+SELECT
+  count(count),
+  count,
+  winner
+FROM (
+  SELECT COUNT(id) as count,
+         DATE_FORMAT(time,'%Y-%m-%d %H:%i:00') AS niceDate,
+         CASE WHEN demProbRaw > repProbRaw THEN 'dem' ELSE 'rep' END AS winner
+  FROM sim
+  WHERE topic = "2014-senate" AND time >= "2014-11-02 21:00:00"
+  GROUP BY niceDate, winner
+  ORDER BY niceDate ASC
+) sub
+WHERE count < 15
+GROUP BY winner, count

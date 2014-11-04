@@ -19,7 +19,6 @@
   </style>
 
   <!-- SPELLS -->
-  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script><!-- load angular -->
   <script src="js/vendors.min.js"></script>
   <script src="js/json.js"></script>
   <script src="js/app.min.js"></script> <!-- load up our controller -->
@@ -35,30 +34,39 @@
 
     <!-- TODO LIST -->
     <div id="election-list" class="row">
-      <div class="col-sm-2">
+      <div class="col-md-2 col-sm-12">
         <div class="list-group">
           <a href class="list-group-item" ng-click="typeClick($event)" ng-repeat="election in elections">
             {{election.topic | split:"-":0 }} {{election.topic | split:"-":1 | capitalize }}<span class="badge">{{election.races.length}}</span>
           </a>
         </div>
+        <ui-select ng-model="selectedState.selected" on-select="menuClick($item, $model)" theme="selectize" ng-show="currentType">
+          <ui-select-match placeholder="Select or search a state in the list...">{{$select.selected.state}}</ui-select-match>
+          <ui-select-choices repeat="race in races | filter: $select.search">
+            <span>{{race.state}}</span>
+          </ui-select-choices>
+        </ui-select>
+
       </div>
-      <div class="col-sm-8">
-        <h3 ng-show="currentState">{{currentState.stateName}} - {{currentState.topic | split:"-":0 }} {{currentState.topic | split:"-":1 | capitalize }}</h3>
-        <canvas tc-chartjs-line chart-options="options" chart-data="data" chart-legend="chart"></canvas>
-        <small class="text-muted pull-right" ng-show="sim">latest simulation data as of <span am-time-ago="sim[sim.length-1].unixtime*1000"></span></small>
-      </div>
-      <div class="col-sm-2">
-        <div class="dropdown pull-right" ng-show="currentType">
-          <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
-            State
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-            <li role="presentation" ng-repeat="race in currentType.races">
-              <a role="menuitem" tabindex="-1" href ng-click="menuClick()">{{race.state}}</a>
-            </li>
-          </ul>
+      <div class="col-md-8 col-sm-12">
+        <div class="col-md-12 col-sm-12">
+          <h3 ng-show="currentState" ng-if="currentState">{{currentState.stateName}} - {{currentState.topic | split:"-":0 }} {{currentState.topic | split:"-":1 | capitalize }}</h3>
         </div>
+        <div class="col-md-6 col-sm-12 clearfix" style="background-color: rgba(255,51,102,1);" ng-show="topline">
+          <p class="pull-left" style="color: white;"><strong>Democrat</strong></p>
+          <h2 class="pull-right" style="color: white; font-size: 3em;">{{topline.demPct}}%</h2>
+        </div>
+        <div class="col-md-6 col-sm-12 clearfix" style="background-color: rgba(51,102,255,1);"  ng-show="topline">
+          <p class="pull-left" style="color: white;"><strong>Republican</strong></p>
+          <h2 class="pull-right" style="color: white; font-size: 3em;">{{topline.repPct}}%</h2>
+        </div>
+        <div class="col-md-12 col-sm-12">
+          <canvas tc-chartjs-line chart-options="options" chart-data="data" chart-legend="chart"></canvas>
+          <small class="text-muted pull-right" ng-show="sim">latest simulation data as of <span am-time-ago="sim[sim.length-1].unixtime*1000"></span></small>
+        </div>
+      </div>
+      <div class="col-md-2 col-sm-12">
+
         <div tc-chartjs-legend chart-legend="chart"></div>
       </div>
     </div>

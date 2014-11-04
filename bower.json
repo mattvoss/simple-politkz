@@ -9,6 +9,11 @@
     "moment": "*",
     "angular-moment": "*",
     "waslidemenu": "https://github.com/webasyst/waslidemenu.git",
-    "tc-angular-chartjs": "*"
+    "tc-angular-chartjs": "*",
+    "selectize": "*",
+    "angular-ui-select": "*"
+  },
+  "resolutions": {
+    "sifter": "0.3.x"
   }
 }

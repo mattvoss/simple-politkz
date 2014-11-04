@@ -13,64 +13,163 @@ module.exports = function(app, config) {
 
   var getSim = function(req, res) {
     pool.getConnection(function(err, connection) {
-      connection.query(
-        'SELECT *, UNIX_TIMESTAMP(time) as unixtime FROM sim WHERE state = ? AND topic = ? ORDER BY time ASC',
-        [
-          req.params.state,
-          req.params.topic
-        ],
-        function(err, rows) {
-          if (err) console.log(err);
-          res.setHeader('Cache-Control', 'max-age=0, must-revalidate, no-cache, no-store');
-          res.writeHead(200, { 'Content-type': 'application/json' });
-          res.write(JSON.stringify(rows), 'utf-8');
-          res.end('\n');
-          connection.release();
+      async.waterfall([
+        function(callback){
+          connection.query(
+            'SELECT *, UNIX_TIMESTAMP(time) as unixtime FROM sim WHERE state = ? AND topic = ? ORDER BY time ASC',
+            [
+              req.params.state,
+              req.params.topic
+            ],
+            function(err, rows) {
+              callback(null, {sims: rows});
+            }
+          );
+        },
+        function(obj, callback){
+          var sql = 'SELECT  ' +
+              '  time,  ' +
+              '  demProbRaw,  ' +
+              '  @x:=Round((9*@x+demProbRaw)/10,2) as ExpMovingAvg  ' +
+              'FROM (SELECT * FROM sim WHERE state = ? AND topic = ? ORDER BY time DESC LIMIT 50) AS sub  ' +
+              'JOIN (  ' +
+              '  SELECT @x:=1  ' +
+              ') AS dummy  ' +
+              'ORDER BY time ASC';
+          connection.query(
+            sql,
+            [
+              req.params.state,
+              req.params.topic
+            ],
+            function(err, rows) {
+              if (err) console.log(err);
+              obj.topline = {
+                "demPct": rows[rows.length-1].ExpMovingAvg,
+                "repPct": 100 - rows[rows.length-1].ExpMovingAvg
+              };
+              callback(null, obj);
+            }
+          );
         }
-      );
+      ],
+      function (err, result) {
+        if (err) console.log(err);
+        res.setHeader('Cache-Control', 'max-age=0, must-revalidate, no-cache, no-store');
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.write(JSON.stringify(result), 'utf-8');
+        res.end('\n');
+        connection.release();
+      });
     });
   };
 
   var getSimStart = function(req, res) {
     pool.getConnection(function(err, connection) {
-      connection.query(
-        'SELECT *, UNIX_TIMESTAMP(time) as unixtime FROM sim WHERE state = ? AND topic = ? AND time >= FROM_UNIXTIME(?) ORDER BY time ASC',
-        [
-          req.params.state,
-          req.params.topic,
-          req.params.start
-        ],
-        function(err, rows) {
-          if (err) console.log(err);
-          res.setHeader('Cache-Control', 'max-age=0, must-revalidate, no-cache, no-store');
-          res.writeHead(200, { 'Content-type': 'application/json' });
-          res.write(JSON.stringify(rows), 'utf-8');
-          res.end('\n');
-          connection.release();
+      async.waterfall([
+        function(callback){
+          connection.query(
+            'SELECT *, UNIX_TIMESTAMP(time) as unixtime FROM sim WHERE state = ? AND topic = ? AND time >= FROM_UNIXTIME(?) ORDER BY time ASC',
+            [
+              req.params.state,
+              req.params.topic,
+              req.params.start
+            ],
+            function(err, rows) {
+              callback(null, {sims: rows});
+            }
+          );
+        },
+        function(obj, callback){
+          var sql = 'SELECT  ' +
+              '  time,  ' +
+              '  demProbRaw,  ' +
+              '  @x:=Round((9*@x+demProbRaw)/10,2) as ExpMovingAvg  ' +
+              'FROM (SELECT * FROM sim WHERE state = ? AND topic = ? ORDER BY time DESC LIMIT 50) AS sub  ' +
+              'JOIN (  ' +
+              '  SELECT @x:=1  ' +
+              ') AS dummy  ' +
+              'ORDER BY time ASC';
+          connection.query(
+            sql,
+            [
+              req.params.state,
+              req.params.topic
+            ],
+            function(err, rows) {
+              if (err) console.log(err);
+              obj.topline = {
+                "demPct": rows[rows.length-1].ExpMovingAvg,
+                "repPct": 100 - rows[rows.length-1].ExpMovingAvg
+              };
+              callback(null, obj);
+            }
+          );
         }
-      );
+      ],
+      function (err, result) {
+        if (err) console.log(err);
+        res.setHeader('Cache-Control', 'max-age=0, must-revalidate, no-cache, no-store');
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.write(JSON.stringify(result), 'utf-8');
+        res.end('\n');
+        connection.release();
+      });
     });
   };
 
   var getSimRange = function(req, res) {
     pool.getConnection(function(err, connection) {
-      connection.query(
-        'SELECT *, UNIX_TIMESTAMP(time) as unixtime FROM sim WHERE state = ? AND topic = ? AND time BETWEEN FROM_UNIXTIME(?) AND FROM_UNIXTIME(?) ORDER BY time ASC',
-        [
-          req.params.state,
-          req.params.topic,
-          req.params.start,
-          req.params.end
-        ],
-        function(err, rows) {
-          if (err) console.log(err);
-          res.setHeader('Cache-Control', 'max-age=0, must-revalidate, no-cache, no-store');
-          res.writeHead(200, { 'Content-type': 'application/json' });
-          res.write(JSON.stringify(rows), 'utf-8');
-          res.end('\n');
-          connection.release();
+      async.waterfall([
+        function(callback){
+          connection.query(
+            'SELECT *, UNIX_TIMESTAMP(time) as unixtime FROM sim WHERE state = ? AND topic = ? AND time BETWEEN FROM_UNIXTIME(?) AND FROM_UNIXTIME(?) ORDER BY time ASC',
+            [
+              req.params.state,
+              req.params.topic,
+              req.params.start,
+              req.params.end
+            ],
+            function(err, rows) {
+              callback(null, {sims: rows});
+            }
+          );
+        },
+        function(obj, callback){
+          var sql = 'SELECT  ' +
+              '  time,  ' +
+              '  demProbRaw,  ' +
+              '  @x:=Round((9*@x+demProbRaw)/10,2) as ExpMovingAvg  ' +
+              'FROM (SELECT * FROM sim WHERE state = ? AND topic = ? ORDER BY time DESC LIMIT 50) AS sub  ' +
+              'JOIN (  ' +
+              '  SELECT @x:=1  ' +
+              ') AS dummy  ' +
+              'ORDER BY time ASC';
+          connection.query(
+            sql,
+            [
+              req.params.state,
+              req.params.topic
+            ],
+            function(err, rows) {
+              if (err) console.log(err);
+              obj.topline = {
+                "demPct": rows[rows.length-1].ExpMovingAvg,
+                "repPct": 100 - rows[rows.length-1].ExpMovingAvg
+              };
+              callback(null, obj);
+            }
+          );
         }
-      );
+      ],
+      function (err, result) {
+        if (err) console.log(err);
+        res.setHeader('Cache-Control', 'max-age=0, must-revalidate, no-cache, no-store');
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.write(JSON.stringify(result), 'utf-8');
+        res.end('\n');
+        connection.release();
+      });
     });
   };
 

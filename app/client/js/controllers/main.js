@@ -1,4 +1,4 @@
-angular.module('politkzController', ['tc.chartjs', 'angularMoment'])
+angular.module('politkzController', ['tc.chartjs', 'angularMoment', 'ui.select'])
 
   // inject the Todo service factory into our controller
   .controller('mainController', ['$scope','$http','Elections', function($scope, $http, Elections) {
@@ -6,24 +6,33 @@ angular.module('politkzController', ['tc.chartjs', 'angularMoment'])
     $scope.loading = true;
     $scope.currentState = false;
     $scope.currentType = false;
+    $scope.topline = false;
+    $scope.sim = false;
+    $scope.selectedState = {
+      selected: []
+    };
+    $scope.races = [];
+
     $scope.$on('onRepeatLast', function(scope, element, attrs){
-      $('#menu').waSlideMenu({});
+      //$('#menu').waSlideMenu({});
     });
+
     $scope.typeClick = function($event) {
       $scope.currentType = this.election;
+      $scope.races = this.election.races;
       var el = ($event.target.className.indexOf("list-group-item") > -1) ? $event.target : $event.target.parentNode;
       $(el).addClass("active");
       $(el).siblings().removeClass("active");
     };
 
-
-    $scope.menuClick = function() {
+    $scope.menuClick = function(race, model) {
       $scope.loading = true;
-      this.race.start = moment().subtract(1, 'hour').unix();
-      this.race.stateName = Data.states[this.race.state];
-      $scope.currentState = this.race;
-      Elections.getRaceDataStart(this.race).success(function(data) {
-        $scope.sim = data;
+      race.start = moment().subtract(1, 'hour').unix();
+      race.stateName = Data.states[race.state];
+      $scope.currentState = race;
+      Elections.getRaceDataStart(race).success(function(data) {
+        $scope.sim = data.sims;
+        $scope.topline = data.topline;
         $scope.loading = false;
         var dem = {
               label: 'Democrat',
@@ -46,7 +55,7 @@ angular.module('politkzController', ['tc.chartjs', 'angularMoment'])
               data: []
             },
             labels = [];
-        data.forEach(function(result, index, array) {
+        data.sims.forEach(function(result, index, array) {
           labels.push(moment.utc(result.unixtime*1000).zone(moment().zone()).format("hh:mm a"));
           dem.data.push(result.demProbRaw.toFixed(2));
           rep.data.push(result.repProbRaw.toFixed(2));

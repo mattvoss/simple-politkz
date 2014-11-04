@@ -2,6 +2,7 @@ module.exports = function(grunt) {
   // Load Grunt tasks declared in the package.json file
   require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
   var jsSrc = [
+        'lib/angular/angular.js',
         'lib/jquery/jquery.js',
         'lib/underscore/underscore.js',
         'lib/bootstrap/bootstrap.js',
@@ -9,12 +10,18 @@ module.exports = function(grunt) {
         'lib/waslidemenu/dist/jquery.waslidemenu.js',
         'bower_components/Chart.js/Chart.js',
         'bower_components/tc-angular-chartjs/dist/tc-angular-chartjs.js',
-        'lib/angular-moment/angular-moment.js'
+        'lib/angular-moment/angular-moment.js',
+        'lib/sifter/sifter.js',
+        'lib/microplugin/microplugin.js',
+        'lib/selectize/selectize.js',
+        'lib/angular-ui-select/select.js'
       ],
       cssSrc = [
         'lib/bootstrap/bootstrap.css',
         'lib/font-awesome/font-awesome.css',
         'lib/waslidemenu/dist/waslidemenu.css',
+        'lib/selectize/selectize.css',
+        'lib/angular-ui-select/select.css',
         'app/client/css/default.css'
       ];
   // Project configuration.
@@ -165,6 +172,13 @@ module.exports = function(grunt) {
       scripts: {
         files: ['app/client/js/**/*.js'],
         tasks: ['jshint:all', 'concat:app'],
+        options: {
+          spawn: true,
+        },
+      },
+      html: {
+        files: ['app/client/*.html'],
+        tasks: ['copy'],
         options: {
           spawn: true,
         },
