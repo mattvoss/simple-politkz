@@ -45,8 +45,8 @@ module.exports = function(app, config) {
             function(err, rows) {
               if (err) console.log(err);
               obj.topline = {
-                "demPct": rows[rows.length-1].ExpMovingAvg,
-                "repPct": 100 - rows[rows.length-1].ExpMovingAvg
+                "demPct": rows[rows.length-1].ExpMovingAvg.toFixed(2),
+                "repPct": (100 - rows[rows.length-1].ExpMovingAvg).toFixed(2)
               };
               callback(null, obj);
             }
@@ -99,8 +99,8 @@ module.exports = function(app, config) {
             function(err, rows) {
               if (err) console.log(err);
               obj.topline = {
-                "demPct": rows[rows.length-1].ExpMovingAvg,
-                "repPct": 100 - rows[rows.length-1].ExpMovingAvg
+                "demPct": rows[rows.length-1].ExpMovingAvg.toFixed(2),
+                "repPct": (100 - rows[rows.length-1].ExpMovingAvg).toFixed(2)
               };
               callback(null, obj);
             }
@@ -154,8 +154,8 @@ module.exports = function(app, config) {
             function(err, rows) {
               if (err) console.log(err);
               obj.topline = {
-                "demPct": rows[rows.length-1].ExpMovingAvg,
-                "repPct": 100 - rows[rows.length-1].ExpMovingAvg
+                "demPct": rows[rows.length-1].ExpMovingAvg.toFixed(2),
+                "repPct": (100 - rows[rows.length-1].ExpMovingAvg).toFixed(2)
               };
               callback(null, obj);
             }
