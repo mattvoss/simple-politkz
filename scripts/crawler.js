@@ -35,114 +35,119 @@ config = nconf
   .file({ file: configFile });
 
 var getRaces = function() {
-  pool.getConnection(function(err, connection) {
-    connection.query('SELECT * FROM races ORDER BY id ASC', function(err, rows) {
-      var updateRace = function(race, callback) {
-        var finished = function() {
-              callback();
-            }
-        console.log("State: ", race.state);
-        console.log("Topic: ", race.topic);
-        console.log("Date: ", race.after);
-        console.log("------------------");
-        getPoll(page, race, finished);
-      };
+  if (moment().isBefore('2014-11-05T20:00:00+00:00')) {
+    pool.getConnection(function(err, connection) {
+      connection.query('SELECT * FROM races ORDER BY id ASC', function(err, rows) {
+        var updateRace = function(race, callback) {
+          var finished = function() {
+                callback();
+              }
+          console.log("State: ", race.state);
+          console.log("Topic: ", race.topic);
+          console.log("Date: ", race.after);
+          console.log("------------------");
+          getPoll(page, race, finished);
+        };
 
-      var getPoll = function(pollPage, race, cb0) {
-        var pollPage = pollPage || 1;
+        var getPoll = function(pollPage, race, cb0) {
+          var pollPage = pollPage || 1;
 
-        var response = function(poll, cb1) {
-          var question = function(question, cb2) {
-            if (question.topic === race.topic) {
-              var data  = {
-                    id: null,
-                    pollsterId: poll.id,
-                    pollster: poll.pollster,
-                    topic: question.topic,
-                    start: poll.start_date,
-                    end: poll.end_date,
-                    state: question.state,
-                    observations: question.subpopulations[0].observations,
-                    moe: question.subpopulations[0].margin_of_error || 0,
-                    republican: null,
-                    democrat: null
-                  };
-              var sub = function(sub, cb3) {
-                var dem = race.demSub || "Dem";
-                console.log("demSub:", race.demSub);
-                if (sub.party === dem) {
-                  data.democrat = sub.value;
-                } else if (sub.party === "Rep") {
-                  data.republican = sub.value;
-                }
-                cb3();
-              };
-              async.each(question.subpopulations[0].responses, sub, function(err) {
-                console.log("Topic: ", question.topic);
-                console.log("Pollster: ", poll.pollster);
-                console.log("State Date: ", poll.start_date);
-                console.log("End Date: ", poll.end_date);
-                console.log("State: ", question.state);
-                console.log("Type: ", question.subpopulations[0].name);
-                console.log("MOE: ", data.moe);
-                console.log("D: ", data.democrat);
-                console.log("R: ", data.republican);
-                console.log("------------------");
-
-                connection.query('SELECT id FROM polls WHERE pollsterId = ?', [data.pollsterId], function(err, rows) {
-                  if (rows.length === 0) {
-                    connection.query('INSERT INTO polls SET ?', data, function(err, result) {
-                      console.log(err);
-                      console.log(result);
-                      cb2();
-                    });
-                  } else {
-                    cb2();
+          var response = function(poll, cb1) {
+            var question = function(question, cb2) {
+              if (question.topic === race.topic) {
+                var data  = {
+                      id: null,
+                      pollsterId: poll.id,
+                      pollster: poll.pollster,
+                      topic: question.topic,
+                      start: poll.start_date,
+                      end: poll.end_date,
+                      state: question.state,
+                      observations: question.subpopulations[0].observations,
+                      moe: question.subpopulations[0].margin_of_error || 0,
+                      republican: null,
+                      democrat: null
+                    };
+                var sub = function(sub, cb3) {
+                  var dem = race.demSub || "Dem";
+                  console.log("demSub:", race.demSub);
+                  if (sub.party === dem) {
+                    data.democrat = sub.value;
+                  } else if (sub.party === "Rep") {
+                    data.republican = sub.value;
                   }
+                  cb3();
+                };
+                async.each(question.subpopulations[0].responses, sub, function(err) {
+                  console.log("Topic: ", question.topic);
+                  console.log("Pollster: ", poll.pollster);
+                  console.log("State Date: ", poll.start_date);
+                  console.log("End Date: ", poll.end_date);
+                  console.log("State: ", question.state);
+                  console.log("Type: ", question.subpopulations[0].name);
+                  console.log("MOE: ", data.moe);
+                  console.log("D: ", data.democrat);
+                  console.log("R: ", data.republican);
+                  console.log("------------------");
+
+                  connection.query('SELECT id FROM polls WHERE pollsterId = ?', [data.pollsterId], function(err, rows) {
+                    if (rows.length === 0) {
+                      connection.query('INSERT INTO polls SET ?', data, function(err, result) {
+                        console.log(err);
+                        console.log(result);
+                        cb2();
+                      });
+                    } else {
+                      cb2();
+                    }
+                  });
+
                 });
 
-              });
+              } else {
+                cb2();
+              }
+            };
 
-            } else {
-              cb2();
-            }
+            async.each(poll.questions, question, function(err) {
+              cb1();
+            });
           };
 
-          async.each(poll.questions, question, function(err) {
-            cb1();
+          pollster.polls({
+            state: race.state,
+            topic: race.topic,
+            page: pollPage,
+            after: race.after
+          }, function(resp){
+            if (resp.length != 0) {
+              async.each(resp, response, function(err){
+                pollPage++;
+                getPoll(pollPage, race, cb0);
+              });
+            } else {
+              cb0();
+            }
           });
         };
 
-        pollster.polls({
-          state: race.state,
-          topic: race.topic,
-          page: pollPage,
-          after: race.after
-        }, function(resp){
-          if (resp.length != 0) {
-            async.each(resp, response, function(err){
-              pollPage++;
-              getPoll(pollPage, race, cb0);
-            });
-          } else {
-            cb0();
-          }
+        //console.log(rows);
+        async.each(rows, updateRace, function(err){
+          console.log("update completed");
+          connection.release();
+          //completed();
         });
-      };
-
-      //console.log(rows);
-      async.each(rows, updateRace, function(err){
-        console.log("update completed");
-        connection.release();
-        //completed();
       });
     });
-  });
+  } else {
+    end();
+  }
 };
 
 
 function completed() {
-  console.log('Done!');
+  job.stop();
+  console.log('Terminating!');
   pool.end(function (err) {
     // all connections in the pool have ended
   });
