@@ -8,6 +8,7 @@ angular.module('politkzController', ['tc.chartjs', 'angularMoment', 'ui.select']
     $scope.currentType = false;
     $scope.topline = false;
     $scope.sim = false;
+    $scope.showPred = false;
     $scope.selectedState = {
       selected: []
     };
@@ -27,10 +28,15 @@ angular.module('politkzController', ['tc.chartjs', 'angularMoment', 'ui.select']
 
     $scope.menuClick = function(race, model) {
       $scope.loading = true;
-      race.start = moment().subtract(1, 'hour').unix();
+      if (moment().isBefore('2014-11-05T20:00:00+00:00')) {
+        race.start = moment().subtract(1, 'hour').unix();
+      } else {
+        race.start = moment('2014-11-05T20:00:00+00:00').subtract(1, 'hour').unix();
+      }
       race.stateName = Data.states[race.state];
       $scope.currentState = race;
       Elections.getRaceDataStart(race).success(function(data) {
+        $scope.showPred = false;
         $scope.sim = data.sims;
         $scope.topline = data.topline;
         $scope.loading = false;
@@ -126,6 +132,63 @@ angular.module('politkzController', ['tc.chartjs', 'angularMoment', 'ui.select']
       $scope.elections = data;
       $scope.loading = false;
     });
+    Elections.getSenatePrediction().success(function(data) {
+      $scope.showPred = true;
+      $scope.loading = false;
+      var rep = {
+              label: 'Seats',
+              fillColor: 'rgba(51,102,255,0.2)',
+              strokeColor: 'rgba(51,102,255,1)',
+              pointColor: 'rgba(51,102,255,1)',
+              pointStrokeColor: '#fff',
+              pointHighlightFill: '#fff',
+              pointHighlightStroke: 'rgba(51,102,255,1)',
+              data: []
+            },
+            labels = [];
+        data.predictions.forEach(function(result, index, array) {
+          labels.push(42+result.count);
+          rep.data.push(result.percent.toFixed(2)*100);
+        });
+        // Chart.js Data
+        $scope.prediction = {
+          labels: labels,
+          datasets: [rep]
+        };
 
+        $scope.predOptions =  {
+
+          // Sets the chart to be responsive
+          responsive: true,
+
+          //Boolean - Whether the scale should start at zero, or an order of magnitude down from the lowest value
+          scaleBeginAtZero : true,
+
+          //Boolean - Whether grid lines are shown across the chart
+          scaleShowGridLines : true,
+
+          //String - Colour of the grid lines
+          scaleGridLineColor : "rgba(0,0,0,.05)",
+
+          //Number - Width of the grid lines
+          scaleGridLineWidth : 1,
+
+          //Boolean - If there is a stroke on each bar
+          barShowStroke : true,
+
+          //Number - Pixel width of the bar stroke
+          barStrokeWidth : 2,
+
+          //Number - Spacing between each of the X value sets
+          barValueSpacing : 5,
+
+          //Number - Spacing between data sets within X values
+          barDatasetSpacing : 1,
+
+          //String - A legend template
+          legendTemplate : '<ul class="tc-chart-js-legend"><% for (var i=0; i<datasets.length; i++){%><li><span style="background-color:<%=datasets[i].strokeColor%>"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>'
+        };
+
+    });
 
   }]);

@@ -222,6 +222,61 @@ module.exports = function(app, config) {
     });
   };
 
+  var getSenatePrediction = function(req, res) {
+    var sql = "SELECT "+
+          "  count(count) as total, "+
+          "  count, "+
+          "  winner "+
+          "FROM ( "+
+          "  SELECT COUNT(id) as count, "+
+          "         DATE_FORMAT(time,'%Y-%m-%d %H:%i:00') AS niceDate, "+
+          "         CASE WHEN demProbRaw > repProbRaw THEN 'dem' ELSE 'rep' END AS winner "+
+          "  FROM sim "+
+          "  WHERE topic = '2014-senate' AND time >= '2014-11-02 21:00:00' "+
+          "  GROUP BY niceDate, winner "+
+          "  ORDER BY niceDate ASC "+
+          ") AS sub "+
+          "WHERE count < 15 "+
+          "GROUP BY winner, count ";
+
+    pool.getConnection(function(err, connection) {
+      connection.query(
+        sql,
+        null,
+        function(err, rows) {
+          var senate = {predictions:[]},
+              sum = rows.reduce(
+                function(prev, current){
+                  var count = (current.winner === 'rep') ? current.total : 0;
+                  return  +(count) + prev;
+                }, 0
+              );
+          console.log(sum);
+          async.each(
+            rows,
+            function(row, callback) {
+              if (row.winner === 'rep') {
+                senate.predictions.push({
+                  count: row.count,
+                  percent: row.total/sum
+                });
+              }
+              callback();
+            },
+            function(err){
+              console.log(senate);
+              res.setHeader('Cache-Control', 'max-age=0, must-revalidate, no-cache, no-store');
+              res.writeHead(200, { 'Content-type': 'application/json' });
+              res.write(JSON.stringify(senate), 'utf-8');
+              res.end('\n');
+              connection.release();
+            }
+          );
+        }
+      );
+    });
+  };
+
   // api ---------------------------------------------------------------------
 
   app.get('/api/:state/:topic', getSim);
@@ -229,6 +284,7 @@ module.exports = function(app, config) {
   app.get('/api/:state/:topic/:start/:end', getSimRange);
   app.get('/api/topics', getTopics);
   app.get('/api/:topic', getTopicRaces);
+  app.get('/prediction/senate', getSenatePrediction);
 
   // application -------------------------------------------------------------
   app.get('*', function(req, res) {

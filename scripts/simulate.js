@@ -36,15 +36,6 @@ config = nconf
   .env("__")
   .file({ file: configFile });
 
-var pool  = mysql.createPool({
-      connectionLimit : 10,
-      host     : config.get("mysql:host"),
-      user     : config.get("mysql:username"),
-      password : config.get("mysql:password"),
-      database : config.get("mysql:database"),
-      debug    : config.get("mysql:debug")
-    });
-
 var init = function() {
   pool.getConnection(function(err, connection) {
     connection.query('SELECT * FROM races ORDER BY id ASC', function(err, rows) {
@@ -184,4 +175,15 @@ function end() {
   connection.end();
 }
 
-job.start();
+if (moment().isBefore('2014-11-05T20:00:00+00:00')) {
+  var pool  = mysql.createPool({
+      connectionLimit : 10,
+      host     : config.get("mysql:host"),
+      user     : config.get("mysql:username"),
+      password : config.get("mysql:password"),
+      database : config.get("mysql:database"),
+      debug    : config.get("mysql:debug")
+    });
+
+  job.start();
+}

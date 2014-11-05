@@ -50,6 +50,7 @@
       </div>
       <div class="col-md-8 col-sm-12">
         <div class="col-md-12 col-sm-12">
+          <h3 ng-show="showPred" ng-if="showPred">Projected Senate Seats for Republicans</h3>
           <h3 ng-show="currentState" ng-if="currentState">{{currentState.stateName}} - {{currentState.topic | split:"-":0 }} {{currentState.topic | split:"-":1 | capitalize }}</h3>
         </div>
         <div class="col-md-6 col-sm-12 clearfix" style="background-color: rgba(255,51,102,1);" ng-show="topline">
@@ -61,6 +62,7 @@
           <h2 class="pull-right" style="color: white; font-size: 3em;">{{topline.repPct}}%</h2>
         </div>
         <div class="col-md-12 col-sm-12">
+          <canvas tc-chartjs-bar chart-options="predOptions" chart-data="prediction" chart-legend="chart" ng-show="showPred"></canvas>
           <canvas tc-chartjs-line chart-options="options" chart-data="data" chart-legend="chart"></canvas>
           <small class="text-muted pull-right" ng-show="sim">latest simulation data as of <span am-time-ago="sim[sim.length-1].unixtime*1000"></span></small>
         </div>

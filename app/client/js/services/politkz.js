@@ -16,5 +16,8 @@ angular.module('politkzService', [])
       getRaceDataStart : function(race) {
         return $http.get('/api/' + race.state + '/' + race.topic + '/' + race.start);
       },
+      getSenatePrediction : function() {
+        return $http.get('/prediction/senate');
+      },
     };
   }]);
