@@ -9,7 +9,13 @@ var app = angular.module('politkz', ['politkzController', 'politkzService'])
   .filter('split', function() {
     return function(input, splitChar, splitIndex) {
       // do some bounds checking here to ensure it has that index
-      return input.split(splitChar)[splitIndex];
+      var arr = input.split(splitChar);
+      if (splitIndex >= 0) {
+        return arr[splitIndex];
+      } else {
+
+        return arr[arr.length + splitIndex];
+      }
     };
   })
   .filter('capitalize', function() {

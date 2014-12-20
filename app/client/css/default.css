@@ -50,3 +50,17 @@
   float:left;
   margin-right:10px;
 }
+
+.tooltip.right {
+  margin-left: 35px;
+}
+
+.tooltip.left {
+  margin-left: -135px;
+}
+
+.tooltip-inner {
+  max-width: 350px;
+  width: 125px;
+}
+

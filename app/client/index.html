@@ -43,7 +43,7 @@
         <ui-select ng-model="selectedState.selected" on-select="menuClick($item, $model)" theme="selectize" ng-show="currentType">
           <ui-select-match placeholder="Select or search a state in the list...">{{$select.selected.state}}</ui-select-match>
           <ui-select-choices repeat="race in races | filter: $select.search">
-            <span>{{race.state}}</span>
+            <span>{{race.state}} - {{race.chart | split:"-":-3 | capitalize }} {{race.chart | split:"-":-2 }} {{race.chart | split:"-":-1 | capitalize }}</span>
           </ui-select-choices>
         </ui-select>
 
@@ -51,7 +51,7 @@
       <div class="col-md-8 col-sm-12">
         <div class="col-md-12 col-sm-12">
           <h3 ng-show="showPred" ng-if="showPred">Projected Senate Seats for Republicans</h3>
-          <h3 ng-show="currentState" ng-if="currentState">{{currentState.stateName}} - {{currentState.topic | split:"-":0 }} {{currentState.topic | split:"-":1 | capitalize }}</h3>
+          <h3 ng-show="currentState" ng-if="currentState">{{currentState.stateName}} - {{currentState.topic | split:"-":0 }} {{currentState.topic | split:"-":1 | capitalize }} : {{currentState.chart | split:"-":-3 | capitalize }} {{currentState.chart | split:"-":-2 }} {{currentState.chart | split:"-":-1 | capitalize }}</h3>
         </div>
         <div class="col-md-6 col-sm-12 clearfix" style="background-color: rgba(255,51,102,1);" ng-show="topline">
           <p class="pull-left" style="color: white;"><strong>Democrat</strong></p>
@@ -61,15 +61,40 @@
           <p class="pull-left" style="color: white;"><strong>Republican</strong></p>
           <h2 class="pull-right" style="color: white; font-size: 3em;">{{topline.repPct}}%</h2>
         </div>
-        <div class="col-md-12 col-sm-12">
+        <div class="col-md-12 col-sm-12" style="height: 375px;">
+          <div>
           <canvas tc-chartjs-bar chart-options="predOptions" chart-data="prediction" chart-legend="chart" ng-show="showPred"></canvas>
-          <canvas tc-chartjs-line chart-options="options" chart-data="data" chart-legend="chart"></canvas>
+          </div>
+          <div>
+          <canvas tc-chartjs-line chart-options="options" chart-data="data" chart-legend="chart" ng-if="sliderVal"></canvas>
+          </div>
+        </div>
+        <div class="col-md-12 col-sm-12 clearfix" style="height: 100px; margin-top: 10px;">
+          <div id="dateSlider" slider ng-if="showDateSlider"
+            ng-model="dateVals"
+            ng-from="date.from" ng-to="date.to" ng-min="date.start" ng-max="date.end"
+            connect=true step=600 margin=604800
+            pips="date.pips"
+            tooltip-upper="date.tooltipUpper"
+            tooltip-lower="date.tooltipLower"
+            change="date.changeDate(event, value)"
+          ></div>
+        </div>
+        <div class="col-md-12 col-sm-12 clearfix" style="margin-top: 10px;">
           <small class="text-muted pull-right" ng-show="sim">latest simulation data as of <span am-time-ago="sim[sim.length-1].unixtime*1000"></span></small>
         </div>
       </div>
-      <div class="col-md-2 col-sm-12">
+      <div class="col-md-2 col-sm-12" style="height: 300px;" >
 
-        <div tc-chartjs-legend chart-legend="chart"></div>
+        <div id="partisanSlider" style="height: 300px;" slider ng-if="showDateSlider"
+          ng-model="partisan.current"
+          ng-from="partisan.from" ng-range="partisan.range"
+          step=1 snap=true
+          orientation="vertical"
+          pips="partisan.pips"
+          change="partisan.change(event, value)"
+        ></div>
+
       </div>
     </div>
     <hr />

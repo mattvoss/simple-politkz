@@ -12,14 +12,7 @@ var pollster = require('pollster'),
     nconf = require('nconf'),
     min_σ  = 0.0,
     page = 1,
-    runs = 100,
-    job = new CronJob({
-      cronTime: '00 */10 * * * *',
-      onTick: function() {
-        init();
-      },
-      start: false
-    });
+    runs = 100;
 
 if (process.argv[2]) {
   if (fs.lstatSync(process.argv[2])) {
@@ -37,12 +30,13 @@ config = nconf
   .file({ file: configFile });
 
 var init = function() {
-  if (moment().isBefore('2014-11-05T20:00:00+00:00')) {
+
     pool.getConnection(function(err, connection) {
       connection.query('SELECT * FROM races ORDER BY id ASC', function(err, rows) {
         var finished = function() {
               console.log("update completed");
               connection.release();
+              end();
             };
 
         var getLastDay = function(race, callback) {
@@ -51,23 +45,46 @@ var init = function() {
               };
           connection.query('SELECT * FROM polls WHERE topic = ? AND chart = ? AND state = ? ORDER BY END DESC LIMIT 1', [race.topic, race.chart, race.state], function(err, result) {
             if (err) console.log(err);
-            //console.log(result);
-            var lastDay = moment(result[0].end);
-            //console.log(lastDay);
-            getPolls(lastDay, race, done);
+            var time = 1401580800
+
+            async.whilst(
+              function () {
+                return time <= 1415188800;
+              },
+              function (callback) {
+                var currTime = time,
+                    day = moment.unix(currTime).utc();
+                time += 600;
+                console.log(day.format("YYYY-MM-DD HH:mm:ss"), race.chart);
+                getPolls(currTime, race, callback);
+              },
+              function (err) {
+                done();
+              }
+            );
+
           });
         };
 
-        var getPolls = function(lastDay, race, cb) {
-          connection.query('SELECT * FROM polls WHERE topic = ? AND chart = ? AND state = ? ORDER BY END ASC', [race.topic, race.chart, race.state], function(err, results) {
-            if (err) console.log(err);
-            //console.log(results);
-            montecarlo(results, lastDay, race, cb);
-          });
+        var getPolls = function(currentTime, race, cb) {
+          connection.query(
+            'SELECT * FROM polls WHERE topic = ? AND chart = ? AND state = ? AND updated <= FROM_UNIXTIME(?) ORDER BY END ASC',
+            [race.topic, race.chart, race.state, currentTime],
+            function(err, results) {
+              if (err) console.log(err);
+              if (results.length > 0) {
+                var lastDay = moment.utc(results[results.length-1].end);
+                //console.log(results);
+                montecarlo(results, currentTime, lastDay, race, cb);
+              } else {
+                cb();
+              }
+            }
+          );
         };
 
 
-        var montecarlo = function (results, lastDay, race, cb) {
+        var montecarlo = function (results, currentTime, lastDay, race, cb) {
           var s = {
               'democrat': 0.00,
               'republican': 0.00,
@@ -86,6 +103,7 @@ var init = function() {
                 state: race.state,
                 topic: race.topic,
                 chart: race.chart,
+                time: moment.unix(currentTime).utc().format("YYYY-MM-DD HH:mm:ss"),
                 year: race.year,
                 dem: 0,
                 demProbRaw: 0,
@@ -101,8 +119,9 @@ var init = function() {
                 //decayedVotes = poll.observations * Math.pow((1 - 0.6), diff),
                 decayedVotes = poll.observations * Math.exp(-diff/0.5),
                 factor = getRandomArbitary (-poll.moe, poll.moe),
-                newDPerc = poll.democrat + factor,
-                newRPerc = poll.republican - factor,
+                percIncrease = (poll.democrat * 1.05) - poll.democrat,
+                newDPerc = (poll.democrat + percIncrease) + factor,
+                newRPerc = (poll.republican - percIncrease) - factor,
                 democratVotes = newDPerc * decayedVotes / 100.0,
                 republicanVotes = newRPerc * decayedVotes / 100.0;
             s.democrat += democratVotes;
@@ -137,7 +156,7 @@ var init = function() {
             });
           }, function(err, users) {
             //console.log(wins);
-            connection.query('INSERT INTO sim SET ?', wins, function(err, result) {
+            connection.query('INSERT INTO sim5d SET ?', wins, function(err, result) {
               //console.log(err);
               //console.log(result);
               cb();
@@ -150,9 +169,6 @@ var init = function() {
         });
       });
     });
-  } else {
-    end();
-  }
 };
 
 function getRandomArbitary (min, max) {
@@ -177,15 +193,13 @@ function extend(from, to) {
 }
 
 function end() {
-  job.stop();
   console.log('Terminating!');
   pool.end(function (err) {
     // all connections in the pool have ended
   });
 }
 
-if (moment().isBefore('2014-11-05T20:00:00+00:00')) {
-  var pool  = mysql.createPool({
+var pool  = mysql.createPool({
       connectionLimit : 10,
       host     : config.get("mysql:host"),
       user     : config.get("mysql:username"),
@@ -193,6 +207,4 @@ if (moment().isBefore('2014-11-05T20:00:00+00:00')) {
       database : config.get("mysql:database"),
       debug    : config.get("mysql:debug")
     });
-
-  job.start();
-}
+init();

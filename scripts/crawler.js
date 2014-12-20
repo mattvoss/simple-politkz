@@ -54,7 +54,7 @@ var getRaces = function() {
 
           var response = function(poll, cb1) {
             var question = function(question, cb2) {
-              if (question.topic === race.topic) {
+              if (question.topic === race.topic && question.chart === race.chart) {
                 var data  = {
                       id: null,
                       pollsterId: poll.id,

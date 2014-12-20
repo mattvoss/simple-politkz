@@ -11,13 +11,19 @@ angular.module('politkzService', [])
         return $http.get('/api/' + topic);
       },
       getRaceData : function(race) {
-        return $http.get('/api/' + race.state + '/' + race.topic);
+        return $http.get('/api/' + race.state + '/' + race.chart);
       },
       getRaceDataStart : function(race) {
-        return $http.get('/api/' + race.state + '/' + race.topic + '/' + race.start);
+        return $http.get('/api/' + race.state + '/' + race.chart + '/' + race.start);
+      },
+      getRaceDataRange : function(race) {
+        return $http.get('/api/' + race.state + '/' + race.chart + '/' + race.partisan + '/' + race.start + '/' + race.end);
       },
       getSenatePrediction : function() {
         return $http.get('/prediction/senate');
+      },
+      getSenatePredictionRange : function(data) {
+        return $http.get('/prediction/senate/' + data.partisan + '/' + data.start + '/' + data.end);
       },
     };
   }]);

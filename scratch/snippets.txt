@@ -51,3 +51,5 @@ FROM (
 ) sub
 WHERE count < 15
 GROUP BY winner, count
+
+SELECT DATE_FORMAT("2014-10-27T15:30:25.554Z", "%Y-%m-%d %H:%i:%s")

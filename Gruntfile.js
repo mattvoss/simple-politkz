@@ -3,6 +3,7 @@ module.exports = function(grunt) {
   require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
   var jsSrc = [
         'lib/angular/angular.js',
+        'lib/angular-sanitize/angular-sanitize.js',
         'lib/jquery/jquery.js',
         'lib/underscore/underscore.js',
         'lib/bootstrap/bootstrap.js',
@@ -14,7 +15,12 @@ module.exports = function(grunt) {
         'lib/sifter/sifter.js',
         'lib/microplugin/microplugin.js',
         'lib/selectize/selectize.js',
-        'lib/angular-ui-select/select.js'
+        'lib/angular-ui-select/select.js',
+        'bower_components/ng-slider/src/ng-slider.js',
+        'bower_components/ng-slider/src/ng-slider.tmpl.js',
+        'bower_components/nouislider/distribute/jquery.nouislider.all.js',
+        'bower_components/nouislider/Link.js',
+        'bower_components/angular-nouislider/src/nouislider.js'
       ],
       cssSrc = [
         'lib/bootstrap/bootstrap.css',
@@ -22,6 +28,10 @@ module.exports = function(grunt) {
         'lib/waslidemenu/dist/waslidemenu.css',
         'lib/selectize/selectize.css',
         'lib/angular-ui-select/select.css',
+        'bower_components/ng-slider/src/css/ng-slider.css',
+        'bower_components/ng-slider/src/css/ng-slider.round.css',
+        'bower_components/nouislider/src/jquery.nouislider.css',
+        'bower_components/nouislider/src/jquery.nouislider.pips.css',
         'app/client/css/default.css'
       ];
   // Project configuration.
@@ -121,6 +131,15 @@ module.exports = function(grunt) {
             dest: 'public/images/',
             filter: 'isFile'
           },
+          {
+            expand: true,
+            flatten: true,
+            src: [
+              'bower_components/ng-slider/src/img/*.*'
+            ],
+            dest: 'public/images/',
+            filter: 'isFile'
+          },
 
           {
             expand: true,
@@ -164,7 +183,7 @@ module.exports = function(grunt) {
     watch: {
       grunt: {
         files: ['Gruntfile.js'],
-        tasks: ['build', 'express:dev', 'watch'],
+        tasks: ['build-dev', 'express:dev', 'watch'],
         options: {
           spawn: true,
         },

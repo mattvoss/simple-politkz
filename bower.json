@@ -1,6 +1,6 @@
 {
   "name": "simple-politkz",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "dependencies": {
     "bootstrap": "*",
     "underscore": "*",
@@ -11,9 +11,12 @@
     "waslidemenu": "https://github.com/webasyst/waslidemenu.git",
     "tc-angular-chartjs": "*",
     "selectize": "*",
-    "angular-ui-select": "*"
+    "angular-ui-select": "*",
+    "ng-slider": "*",
+    "angular-nouislider": "https://github.com/hirtie-maxim/angular-nouislider.git"
   },
   "resolutions": {
-    "sifter": "0.3.x"
+    "angular": "1.3.2",
+    "nouislider": "~7.0.9"
   }
 }
